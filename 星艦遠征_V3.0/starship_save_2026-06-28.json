@@ -1,0 +1,16 @@
+{
+  "playerName": "艦長",
+  "level": 11,
+  "score": 25550,
+  "health": 5,
+  "shieldCount": 3,
+  "weaponLevel": 5,
+  "ultLevel": 5,
+  "currentWeapon": 2,
+  "x": 2179.482057739733,
+  "y": 944.3958385364019,
+  "attackBonus": 2,
+  "magnetRange": 150,
+  "autoAim": false,
+  "records": "[{\"name\":\"0000\",\"score\":143470,\"level\":43,\"date\":1782640360565},{\"name\":\"BBB\",\"score\":2800,\"level\":2,\"date\":1782649934546}]"
+}

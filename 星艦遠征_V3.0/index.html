@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title data-i18n="windowTitle">星艦遠征</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* BGM 簡化面板樣式 */
+        .bgm-simple {
+            display: flex;
+            align-items: center;
+            gap: 1vmin;
+            background: rgba(10,15,40,0.7);
+            border-radius: 2vmin;
+            padding: 0.5vmin 1.5vmin;
+            margin: 1vmin 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .bgm-simple select {
+            background: #1a1a3a;
+            color: #ccddff;
+            border: 1px solid #6688cc;
+            border-radius: 1.5vmin;
+            padding: 0.6vmin 1vmin;
+            font-size: 1.8vmin;
+            flex: 1;
+            min-width: 15vmin;
+            cursor: pointer;
+        }
+        .bgm-simple .btn-sm {
+            background: #1a1a3a;
+            border: 1px solid #6688cc;
+            color: #ddeeff;
+            padding: 0.4vmin 1.5vmin;
+            border-radius: 2vmin;
+            font-size: 1.8vmin;
+            cursor: pointer;
+            min-height: 4vmin;
+            min-width: 4.5vmin;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+        .bgm-simple .btn-sm:hover {
+            background: #334477;
+        }
+        .bgm-simple .btn-sm.playing {
+            background: #2a5a3a;
+            border-color: #66dd88;
+        }
+        /* 載入存檔按鈕 */
+        .btn-load {
+            background: #2a3a5a;
+            border-color: #88aacc;
+        }
+        .btn-load:hover {
+            background: #3a4a6a;
+        }
+        .file-input-hidden {
+            display: none;
+        }
+        /* 觸控按鈕容器，JS 會根據裝置隱藏 */
+        #touchControls {
+            /* 保留原有樣式，顯示與否由 JS 控制 */
+        }
+    </style>
+</head>
+<body>
+<div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- ========== 登入面板 ========== -->
+    <div class="overlay" id="loginOverlay">
+        <div class="panel">
+            <h2 style="font-size:3.5vmin;">🚀 <span data-i18n="gameTitle">星艦遠征</span></h2>
+            <input type="text" id="playerNameInput" placeholder="輸入名字" maxlength="20" data-i18n-placeholder="namePlaceholder">
+            <input type="text" id="unlockInput" placeholder="通關密語 (選填)" maxlength="20" data-i18n-placeholder="unlockPlaceholder">
+            <select id="languageSelect">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+            </select>
+
+            <!-- 簡易 BGM 控制 -->
+            <div class="bgm-simple">
+                <button class="btn-sm" id="bgmPlayBtn" title="播放/暫停">▶</button>
+                <select id="bgmSongSelect"></select>
+            </div>
+
+            <button class="btn" id="startGameBtn" data-i18n="start">出發</button>
+            <button class="btn" id="leaderboardBtn">🏆 <span data-i18n="leaderboard">排行榜</span></button>
+            <button class="btn btn-load" id="loadSaveBtn">📂 <span data-i18n="loadSave">載入存檔</span></button>
+            <input type="file" id="importFileInput" class="file-input-hidden" accept=".json">
+            <div style="font-size:1.8vmin;color:#667799;margin-top:1.5vmin;">© 2026 <span data-i18n="gameTitle">星艦遠征</span></div>
+        </div>
+    </div>
+
+    <!-- ========== 故事覆蓋層 ========== -->
+    <div class="overlay" id="storyOverlay">
+        <div style="max-width:90vw;text-align:center;">
+            <div id="storyText" data-i18n="storyContent" style="max-width:80vmin;max-height:55vh;overflow-y:auto;font-size:2.2vmin;line-height:1.8;color:#ccddff;text-shadow:0 0 2vmin #4488ff;padding:2vmin;border-left:0.4vmin solid #b49450;text-align:left;white-space:pre-wrap;"></div>
+            <button class="btn" id="storySkipBtn" data-i18n="storySkip">⏭️ 略過故事</button>
+            <button class="btn" id="storyStartBtn" style="font-size:2.5vmin;padding:2vmin 6vmin;" data-i18n="storyStart">🚀 開始冒險</button>
+        </div>
+    </div>
+
+    <!-- ========== 幫助覆蓋層 ========== -->
+    <div class="overlay" id="helpOverlay">
+        <div class="help-panel">
+            <h3 data-i18n="helpTitle">📖 操作指南</h3>
+            <div class="row"><kbd>🕹️ <span data-i18n="helpMoveLeft">左半滑動</span></kbd><span data-i18n="helpMoveDesc">移動</span></div>
+            <div class="row"><kbd>👉 <span data-i18n="helpAimRight">右半滑動</span></kbd><span data-i18n="helpAimDesc">瞄準 (自動瞄準開啟時無效)</span></div>
+            <div class="row"><kbd>🔫 <span data-i18n="helpShoot">射擊</span></kbd><span data-i18n="helpShootDesc">點擊切換開/關</span></div>
+            <div class="row"><kbd>⚡ <span data-i18n="helpCharge">蓄力</span></kbd><span data-i18n="helpChargeDesc">長按蓄力</span></div>
+            <div class="row"><kbd>💥 <span data-i18n="helpUlt">大招</span></kbd><span data-i18n="helpUltDesc">點擊釋放</span></div>
+            <div class="row"><kbd>🛡️ <span data-i18n="helpShield">護盾</span></kbd><span data-i18n="helpShieldDesc">點擊釋放</span></div>
+            <div class="row"><kbd>🔀 <span data-i18n="helpWeapon">換武</span></kbd><span data-i18n="helpWeaponDesc">循環切換</span></div>
+            <div style="border-top:1px solid #446688;margin:1vmin 0;padding-top:1vmin;color:#88aacc;">
+                <div class="row"><kbd>B</kbd><span data-i18n="helpBgmToggle">BGM 播放/暫停</span></div>
+                <div class="row"><kbd>Shift+B</kbd><span data-i18n="helpBgmPrev">BGM 上一首</span></div>
+                <div class="row"><kbd>Ctrl+→</kbd><span data-i18n="helpBgmNext">BGM 下一首</span></div>
+                <div class="row"><kbd>Ctrl+↑</kbd><span data-i18n="helpVolUp">BGM 音量 +10%</span></div>
+                <div class="row"><kbd>Ctrl+↓</kbd><span data-i18n="helpVolDown">BGM 音量 -10%</span></div>
+            </div>
+            <div style="text-align:center;margin-top:2vmin;"><button class="btn" id="closeHelpBtn" data-i18n="close">關閉</button></div>
+        </div>
+    </div>
+
+    <!-- ========== 排行榜 ========== -->
+    <div class="overlay" id="leaderboardOverlay" style="display:none;">
+        <div class="panel">
+            <h2>🏆 <span data-i18n="leaderboard">排行榜</span></h2>
+            <div id="leaderboardList" style="max-height:30vh;overflow-y:auto;"></div>
+            <button class="btn" id="closeLeaderboardBtn" data-i18n="close">返回</button>
+        </div>
+    </div>
+
+    <!-- ========== 暫停選單 ========== -->
+    <div class="overlay" id="pauseOverlay" style="display:none;">
+        <div class="panel">
+            <h3 data-i18n="pause">⚙️ 暫停</h3>
+            <!-- 暫停選單中的簡易 BGM 控制（保留，但文字改為 data-i18n） -->
+            <div style="background:rgba(20,30,60,0.5);border-radius:2vmin;padding:1vmin;margin:1vmin 0;border:1px solid #446688;">
+                <div style="display:flex;align-items:center;gap:1vmin;flex-wrap:wrap;justify-content:center;">
+                    <button class="btn" id="pauseBgmPlayBtn" style="padding:0.5vmin 1.5vmin;font-size:1.8vmin;min-width:8vmin;">▶ <span data-i18n="play">播放</span></button>
+                    <button class="btn" id="pauseBgmPrevBtn" style="padding:0.5vmin 1vmin;font-size:1.8vmin;">⏮</button>
+                    <button class="btn" id="pauseBgmNextBtn" style="padding:0.5vmin 1vmin;font-size:1.8vmin;">⏭</button>
+                    <span id="pauseBgmStatus" style="color:#88ddff;font-size:1.6vmin;min-width:8vmin;">⏹ <span data-i18n="stopped">停止</span></span>
+                </div>
+            </div>
+            <button class="btn" id="resumeFromPauseBtn" data-i18n="resume">繼續</button>
+            <button class="btn" id="restartFromPauseBtn" data-i18n="restart">重新開始</button>
+            <button class="btn" id="exportSaveBtn">📤 <span data-i18n="exportSave">匯出存檔</span></button>
+            <button class="btn" id="importSaveBtn">📥 <span data-i18n="importSave">匯入存檔</span></button>
+            <input type="file" id="importFileInputPause" class="file-input-hidden" accept=".json">
+            <button class="btn" id="backToMenuBtn" data-i18n="backToMenu">返回主選單</button>
+        </div>
+    </div>
+
+    <!-- ========== 遊戲結束 ========== -->
+    <div class="overlay" id="gameOverOverlay" style="display:none;">
+        <div class="panel">
+            <h2 id="gameOverTitle" data-i18n="gameOver">艦隊覆滅</h2>
+            <p id="gameOverStats"></p>
+            <button class="btn" id="restartGameBtn" data-i18n="restart">重新開始</button>
+            <button class="btn" id="backToMenuFromGameOverBtn" data-i18n="backToMenu">返回主選單</button>
+        </div>
+    </div>
+
+    <!-- ========== 結局 ========== -->
+    <div class="overlay" id="endingOverlay" style="display:none;">
+        <div class="panel">
+            <h2 data-i18n="endingTitle">👸 公主獲救！</h2>
+            <div id="endingText" style="text-align:left;font-size:2vmin;line-height:2;padding:2vmin 0;" data-i18n="endingContent"></div>
+            <button class="btn" id="endingContinueBtn" data-i18n="endingContinue">繼續旅程</button>
+        </div>
+    </div>
+
+    <!-- ========== UI 層（遊戲中） ========== -->
+    <div class="ui-layer" id="uiLayer" style="display:none;">
+        <div class="ui-left">
+            <span id="scoreText"><span data-i18n="score">分數</span> 0</span>
+            <span id="healthText"><span data-i18n="health">❤️</span> x3</span>
+            <span id="shieldText">🛡️ x0</span>
+            <span id="weaponLvText">🔫 Lv1</span>
+            <span id="ultLvText"><span data-i18n="ult">💥大招</span> Lv1</span>
+            <span id="speedText"><span data-i18n="speed">⚡速度</span>1x</span>
+            <span id="timerText"><span data-i18n="time">⏱️</span> 0s</span>
+            <span id="autoAimText" style="color:#88ff88;font-weight:bold;">🎯 <span data-i18n="autoAim">自動</span></span>
+            <span id="stageText" style="color:#ffaa44;font-weight:bold;"></span>
+        </div>
+        <div class="ui-right">
+            <button class="help-btn" id="helpBtn">❓</button>
+        </div>
+    </div>
+
+    <!-- 遊戲內 BGM 狀態條 -->
+    <div id="bgmInGameStatus">🎵 未播放</div>
+
+    <!-- Boss 血量條容器 -->
+    <div class="boss-hp-container" id="bossHpContainer"></div>
+
+    <!-- 武器指示 -->
+    <div class="weapon-indicator" id="weaponText">🔫 機槍 [1]</div>
+
+    <!-- 蓄力條 -->
+    <div class="charge-bar" id="chargeBarContainer">
+        <div class="charge-fill" id="chargeFill"></div>
+    </div>
+
+    <!-- 小地圖 -->
+    <div class="minimap-container">
+        <div class="minimap-frame">
+            <canvas id="minimapCanvas" width="200" height="140"></canvas>
+        </div>
+    </div>
+
+    <div class="copyright" id="gameCopyright">© 2026 <span data-i18n="gameTitle">星艦遠征</span></div>
+
+    <!-- ========== 觸控按鈕（JS 將根據裝置隱藏） ========== -->
+    <div id="touchControls">
+        <div class="right-top">
+            <button class="touch-btn small weapon" id="tbWeapon">🔀</button>
+            <button class="touch-btn small ult" id="tbUlt">💥</button>
+            <button class="touch-btn small shield" id="tbShield">🛡️</button>
+        </div>
+        <div class="right-bottom">
+            <button class="touch-btn charge" id="tbCharge">⚡</button>
+            <button class="touch-btn shoot" id="tbShoot">🔫</button>
+        </div>
+    </div>
+</div>
+
+<!-- Script 載入順序保持不變 -->
+<script src="js/config.js"></script>
+<script src="js/locale.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/gameLoop.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/save.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

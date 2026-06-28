@@ -1,0 +1,57 @@
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-touch-callout:none}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;touch-action:none;position:fixed;font-family:'Hei','Microsoft YaHei',sans-serif}
+#gameContainer{position:relative;width:100vw;height:100vh;touch-action:none}
+canvas{display:block;width:100%;height:100%;background:#050510;touch-action:none}
+.overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:none}
+.panel{background:rgba(5,5,25,0.95);border:2px solid #b49450;border-radius:4vmin;padding:3vmin 4vmin;color:#ccddff;text-align:center;backdrop-filter:blur(10px);min-width:60vmin;max-width:90vmin;max-height:90vh;overflow-y:auto;pointer-events:auto;font-size:2.2vmin}
+.panel input,.panel select{padding:1.5vmin;font-size:2vmin;margin:1vmin 0;background:#1a1a3a;color:#ccddff;border:1px solid #6688cc;border-radius:2vmin;width:100%}
+.btn{background:#1a1a3a;border:1px solid #6688cc;color:#ddeeff;padding:1.5vmin 3vmin;border-radius:4vmin;margin:1vmin;cursor:pointer;font-weight:bold;font-size:2.2vmin;touch-action:manipulation;min-height:6vmin}
+.btn:hover{background:#334477}
+/* 載入存檔按鈕專用樣式 */
+.btn-load{background:#2a3a5a;border-color:#88aacc}
+.btn-load:hover{background:#3a4a6a}
+#storyOverlay{display:none;flex-direction:column;justify-content:center;align-items:center;background:rgba(0,0,10,0.94);z-index:20;padding:4vmin;pointer-events:auto}
+#storyOverlay.show{display:flex}
+#storyText{max-width:80vmin;max-height:55vh;overflow-y:auto;font-size:2.2vmin;line-height:1.8;color:#ccddff;text-shadow:0 0 2vmin #4488ff;padding:2vmin;border-left:0.4vmin solid #b49450;text-align:left;white-space:pre-wrap}
+#storySkipBtn{margin-top:2vmin;opacity:0.5;pointer-events:none;transition:opacity 0.5s}
+#storySkipBtn.enabled{opacity:1;pointer-events:auto}
+#helpOverlay{display:none;z-index:15;pointer-events:auto}
+#helpOverlay.show{display:flex}
+.help-panel{background:rgba(5,5,25,0.96);border:2px solid #88aacc;border-radius:3vmin;padding:3vmin;max-width:80vmin;color:#ccddff;backdrop-filter:blur(12px);text-align:left;font-size:2vmin;line-height:2}
+.help-panel h3{text-align:center;color:#ffd700;border-bottom:1px solid #446688;padding-bottom:1vmin}
+.help-panel kbd{background:#223355;padding:0 1vmin;border-radius:1vmin;color:#ffdd88;border:1px solid #6688aa;font-family:monospace}
+.help-panel .row{display:flex;gap:1.5vmin;align-items:center;flex-wrap:wrap}
+.help-panel .row span{flex:1}
+.ui-layer{position:absolute;top:1vmin;left:1.5vmin;right:1.5vmin;display:flex;justify-content:space-between;color:#aaccff;font-size:1.8vmin;text-shadow:0.2vmin 0.2vmin 0 #000;background:rgba(0,0,20,0.7);padding:0.8vmin 2vmin;border-radius:4vmin;pointer-events:none;backdrop-filter:blur(4px);z-index:5;flex-wrap:wrap;gap:0.5vmin}
+.ui-layer .ui-left,.ui-layer .ui-right{display:flex;gap:1.5vmin;align-items:center;flex-wrap:wrap}
+.ui-layer .ui-right{pointer-events:auto}
+.help-btn{background:0 0;border:1px solid #6688cc;color:#aaccff;border-radius:50%;width:4vmin;height:4vmin;font-size:2.5vmin;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.boss-hp-container{position:absolute;top:6vmin;left:50%;transform:translateX(-50%);display:flex;gap:1vmin;flex-wrap:wrap;justify-content:center;z-index:4}
+.boss-hp-bar{width:25vmin;height:1.8vmin;background:#222244;border:0.3vmin solid #aa44aa;border-radius:1.5vmin;overflow:hidden;box-shadow:0 0 2vmin magenta}
+.boss-hp-fill{height:100%;background:linear-gradient(90deg,#cc33cc,#ff66ff)}
+.boss-shield-bar{width:25vmin;height:1.2vmin;background:#224466;border:0.3vmin solid #66aaff;border-radius:1.5vmin;overflow:hidden;box-shadow:0 0 2vmin #4488ff}
+.boss-shield-fill{height:100%;background:linear-gradient(90deg,#4488ff,#88ddff)}
+.weapon-indicator{position:absolute;bottom:18vmin;left:2vmin;color:#aaccff;font-size:2vmin;background:rgba(0,0,30,0.8);padding:0.8vmin 2vmin;border-radius:4vmin;pointer-events:none;border:1px solid #446688;z-index:5}
+.charge-bar{position:absolute;bottom:16vmin;left:50%;transform:translateX(-50%);width:30vmin;height:1.5vmin;background:#112244;border:1px solid #88aacc;border-radius:1.5vmin;overflow:hidden;display:none;z-index:5}
+.charge-fill{height:100%;background:linear-gradient(90deg,#4488ff,#88ccff)}
+.minimap-container{position:absolute;bottom:20vmin;right:2vmin;z-index:5;pointer-events:none}
+.minimap-frame{background:rgba(0,0,20,0.75);border:0.3vmin solid #88aacc;border-radius:2vmin;padding:0.5vmin;backdrop-filter:blur(4px)}
+#minimapCanvas{width:20vmin;height:14vmin;display:block;border-radius:1vmin}
+.copyright{position:absolute;bottom:1vmin;right:2vmin;color:#667799;font-size:1.6vmin;z-index:5;pointer-events:none}
+.leaderboard-entry{color:#ccddff;font-size:2vmin;margin:0.5vmin 0;text-align:left}
+.leaderboard-entry span{color:#ffd700;font-weight:bold}
+.file-input-hidden{display:none}
+#touchControls{position:fixed;bottom:0;left:0;right:0;top:0;pointer-events:none;z-index:20}
+#touchControls>div{pointer-events:auto;position:absolute;display:flex;gap:1.5vmin;align-items:center}
+#touchControls .right-top{top:10vmin;right:2vmin;flex-direction:column;gap:1.5vmin}
+#touchControls .right-bottom{bottom:4vmin;right:2vmin;gap:2vmin}
+.touch-btn{width:12vmin;height:12vmin;min-width:56px;min-height:56px;border-radius:50%;font-size:5vmin;background:rgba(30,60,120,0.75);border:0.4vmin solid rgba(100,180,255,0.6);color:#fff;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 0 3vmin rgba(100,180,255,0.2);touch-action:none;user-select:none;text-shadow:0 0 1vmin #000;transition:0.1s;font-weight:bold;line-height:1;pointer-events:auto}
+.touch-btn:active{transform:scale(0.85);background:rgba(60,120,200,0.9)}
+.touch-btn.shoot{background:rgba(200,60,60,0.8);border-color:#ff6666}
+.touch-btn.shoot.active{background:rgba(60,200,60,0.8);border-color:#66ff66}
+.touch-btn.charge{background:rgba(60,120,200,0.8);border-color:#66aaff}
+.touch-btn.ult{background:rgba(200,180,60,0.8);border-color:#ffdd44}
+.touch-btn.shield{background:rgba(60,200,180,0.8);border-color:#44ddcc}
+.touch-btn.weapon{background:rgba(160,100,200,0.8);border-color:#cc88ff}
+.touch-btn.small{width:9vmin;height:9vmin;min-width:44px;min-height:44px;font-size:4vmin}
+@media (max-width:600px){.touch-btn{width:14vmin;height:14vmin;font-size:6vmin}.touch-btn.small{width:11vmin;height:11vmin;font-size:5vmin}}
